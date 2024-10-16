@@ -5,9 +5,10 @@ from configparser import DEFAULTSECT, MissingSectionHeaderError, ParsingError, R
     NoSectionError
 import os
 import stat
-from mutagen._compat import StringIO
+# from mutagen._compat import StringIO
+from io import StringIO
 
-from requests.compat import basestring
+# from requests.compat import basestring
 
 SUFFIX = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
 
@@ -78,6 +79,7 @@ class Fdfs_ConfigParser(RawConfigParser):
         self._default_section = section
 
     def read(self, filenames):
+        basestring = (str, bytes)
         if isinstance(filenames, basestring):
             filenames = [filenames]
 

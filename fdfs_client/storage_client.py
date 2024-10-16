@@ -9,7 +9,7 @@ import datetime
 import errno
 from fdfs_client.fdfs_protol import *
 from fdfs_client.connection import *
-from fdfs_client.sendfile import *
+# from fdfs_client.sendfile import *
 from fdfs_client.exceptions import (
     FDFSError,
     ConnectionError,
@@ -54,25 +54,26 @@ def tcp_send_file_ex(conn, filename, buffer_size=4096):
     @filename: string
     @return long, sended size
     '''
-    if 'linux' not in sys.platform.lower():
-        raise DataError('[-] Error: \'sendfile\' system call only available on linux.')
-    nbytes = 0
-    offset = 0
-    sock_fd = conn.get_sock().fileno()
-    with open(filename, 'rb') as f:
-        in_fd = f.fileno()
-        while 1:
-            try:
-                sent = sendfile(sock_fd, in_fd, offset, buffer_size)
-                if 0 == sent:
-                    break
-                nbytes += sent
-                offset += sent
-            except OSError as e:
-                if e.errno == errno.EAGAIN:
-                    continue
-                raise
-    return nbytes
+    return tcp_send_file(conn, filename, buffer_size)
+    # if 'linux' not in sys.platform.lower():
+    #     raise DataError('[-] Error: \'sendfile\' system call only available on linux.')
+    # nbytes = 0
+    # offset = 0
+    # sock_fd = conn.get_sock().fileno()
+    # with open(filename, 'rb') as f:
+    #     in_fd = f.fileno()
+    #     while 1:
+    #         try:
+    #             sent = sendfile(sock_fd, in_fd, offset, buffer_size)
+    #             if 0 == sent:
+    #                 break
+    #             nbytes += sent
+    #             offset += sent
+    #         except OSError as e:
+    #             if e.errno == errno.EAGAIN:
+    #                 continue
+    #             raise
+    # return nbytes
 
 
 def tcp_recv_file(conn, local_filename, file_size, buffer_size=1024):
@@ -237,7 +238,7 @@ class Storage_client(object):
             self.pool.release(store_conn)
         ret_dic = {
             'Group name': group_name.strip(b'\x00').decode(),
-            'Remote file_id': group_name.strip(b'\x00').decode() + os.sep + \
+            'Remote file_id': group_name.strip(b'\x00').decode() + '/' + \
                               remote_filename,
             'Status': 'Upload successed.',
             'Local file name': file_buffer if (
@@ -401,7 +402,7 @@ class Storage_client(object):
         finally:
             self.pool.release(store_conn)
         ret_dic = {
-            'Remote file_id': store_serv.group_name + os.sep + remote_filename,
+            'Remote file_id': store_serv.group_name + '/' + remote_filename,
             'Content': file_buffer if download_type == \
                                       FDFS_DOWNLOAD_TO_FILE else recv_buffer,
             'Download size': appromix(total_recv_size),
